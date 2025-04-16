@@ -135,9 +135,9 @@
 
         async function enviarPalpite() {
             const nome = document.getElementById('nome').value;
-            const data = document.getElementById('data').value;
+            const dataSelecionada = document.getElementById('data').value;
             
-            if (!nome || !data) {
+            if (!nome || !dataSelecionada) {
                 mostrarMensagem('Por favor, preencha todos os campos.', 'error');
                 return;
             }
@@ -148,15 +148,10 @@
                 const fileData = await response.json();
                 const content = JSON.parse(atob(fileData.content));
                 
-                // Formatar a data corretamente
-                const dataPalpite = new Date(data);
-                console.log('Data original:', data);
-                console.log('Data convertida:', dataPalpite);
-                
                 // Adicionar novo palpite
                 content.palpites.push({
                     nome: nome,
-                    data: data, // mantemos o formato YYYY-MM-DD
+                    data: dataSelecionada,
                     timestamp: new Date().toISOString()
                 });
                 
