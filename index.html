@@ -150,37 +150,23 @@
                     return;
                 }
 
-                // Primeiro, vamos ler o conteúdo atual
-                const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${FILE_PATH}`, {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
-                
-                if (!getResponse.ok) {
-                    throw new Error('Erro ao ler arquivo atual');
-                }
-
-                const fileData = await getResponse.json();
-                
-                // Decodificar o conteúdo atual
-                const currentContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
-                
-                // Garantir que temos um array de palpites
-                if (!currentContent.palpites) {
-                    currentContent.palpites = [];
-                }
-
-                // Adicionar novo palpite
-                currentContent.palpites.push({
+                // Criar novo palpite
+                const novoPalpite = {
                     nome: nome,
                     data: dataSelecionada,
                     timestamp: new Date().toISOString()
-                });
+                };
 
-                // Converter o conteúdo atualizado para Base64
-                const updatedContent = JSON.stringify(currentContent, null, 2);
-                const base64Content = btoa(unescape(encodeURIComponent(updatedContent)));
+                // Buscar conteúdo atual
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${FILE_PATH}`);
+                const fileData = await response.json();
+
+                // Preparar novo conteúdo
+                const currentContent = JSON.parse(atob(fileData.content));
+                if (!currentContent.palpites) {
+                    currentContent.palpites = [];
+                }
+                currentContent.palpites.push(novoPalpite);
 
                 // Enviar atualização
                 const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${FILE_PATH}`, {
@@ -191,14 +177,13 @@
                     },
                     body: JSON.stringify({
                         message: 'Adicionar novo palpite',
-                        content: base64Content,
+                        content: btoa(JSON.stringify(currentContent, null, 2)),
                         sha: fileData.sha
                     })
                 });
 
                 if (!updateResponse.ok) {
-                    const errorData = await updateResponse.json();
-                    throw new Error(`Erro ao salvar: ${errorData.message}`);
+                    throw new Error('Erro ao salvar palpite');
                 }
 
                 mostrarMensagem('Palpite enviado com sucesso!', 'success');
@@ -207,7 +192,7 @@
                 await carregarPalpites();
             } catch (error) {
                 console.error('Erro ao enviar palpite:', error);
-                mostrarMensagem(error.message, 'error');
+                mostrarMensagem('Erro ao enviar palpite. Tente novamente mais tarde.', 'error');
             }
         }
 
