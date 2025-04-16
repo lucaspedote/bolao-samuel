@@ -115,12 +115,15 @@
             palpites.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             palpites.forEach(palpite => {
+                const dataPalpite = new Date(palpite.data);
+                const dataFormatada = dataPalpite.toLocaleDateString('pt-BR');
+                
                 const div = document.createElement('div');
                 div.className = 'palpite';
                 div.innerHTML = `
                     <strong>${palpite.nome}</strong> - 
-                    ${new Date(palpite.data).toLocaleDateString('pt-BR')} - 
-                    ${new Date(palpite.timestamp).toLocaleString('pt-BR')}
+                    ${dataFormatada}
+                    (enviado em ${new Date(palpite.timestamp).toLocaleString('pt-BR')})
                 `;
                 listaPalpites.appendChild(div);
             });
